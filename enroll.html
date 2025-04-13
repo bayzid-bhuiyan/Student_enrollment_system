@@ -1,0 +1,83 @@
+<!-- enroll.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enroll in Course</title>
+  <style>
+    body { font-family: sans-serif; background: #eee; margin: 0; }
+    .container {
+      max-width: 500px; margin: 40px auto; background: #fff;
+      padding: 25px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    label { display: block; margin-top: 15px; }
+    input, select {
+      width: 100%; padding: 10px; margin-top: 5px;
+      border: 1px solid #ccc; border-radius: 5px;
+    }
+    button {
+      margin-top: 20px; padding: 12px; width: 100%;
+      background: black; color: white; border: none; border-radius: 5px;
+      cursor: pointer;
+    }
+    .message { margin-top: 15px; font-weight: bold; }
+    .success { color: green; }
+    .error { color: red; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h2>Enroll Student in Course</h2>
+  <form id="enrollForm">
+    <label>Student ID* <input type="text" name="student_id" required></label>
+    <label>Course Code* <input type="text" name="course_code" required></label>
+    <label>Course Title
+      <select name="course_title">
+        <option value="Data Structures">Data Structures</option>
+        <option value="Algorithms">Algorithms</option>
+        <option value="Economics">Economics</option>
+      </select>
+    </label>
+    <label>Semester
+      <select name="semester">
+        <option value="Spring 2025">Spring 2025</option>
+        <option value="Summer 2025">Summer 2025</option>
+      </select>
+    </label>
+    <button type="submit">Enroll</button>
+    <div class="message" id="msgBox"></div>
+  </form>
+</div>
+
+<script>
+document.getElementById('enrollForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const form = e.target;
+  const enrollment = {
+    student_id: form.student_id.value.trim(),
+    course_code: form.course_code.value.trim(),
+    course_title: form.course_title.value,
+    semester: form.semester.value
+  };
+
+  if (!enrollment.student_id || !enrollment.course_code) {
+    showMessage('Student ID and Course Code are required.', 'error');
+    return;
+  }
+
+  let enrollments = JSON.parse(localStorage.getItem('enrollments') || '[]');
+  enrollments.push(enrollment);
+  localStorage.setItem('enrollments', JSON.stringify(enrollments));
+  form.reset();
+  showMessage('Enrollment successful!', 'success');
+
+  function showMessage(text, type) {
+    const msg = document.getElementById('msgBox');
+    msg.textContent = text;
+    msg.className = 'message ' + type;
+  }
+});
+</script>
+</body>
+</html>

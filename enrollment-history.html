@@ -1,0 +1,118 @@
+<!-- enrollment-history.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Enrollment History</title>
+  <style>
+    body { font-family: sans-serif; margin: 0; background: #f9f9f9; }
+    .container {
+      max-width: 700px; margin: 40px auto; background: white;
+      padding: 25px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    input, select {
+      width: 100%; padding: 10px; margin-bottom: 10px;
+    }
+    button {
+      padding: 8px 12px; background: black; color: white; border: none;
+      border-radius: 5px; cursor: pointer; margin-right: 5px;
+    }
+    button.edit { background: #007bff; }
+    button.delete { background: #dc3545; }
+    table { width: 100%; margin-top: 20px; border-collapse: collapse; }
+    th, td { padding: 10px; border: 1px solid #ccc; text-align: center; }
+    .no-data { margin-top: 15px; color: red; }
+    .action-buttons { display: flex; justify-content: center; gap: 5px; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h2>Enrollment History</h2>
+  <input type="text" id="studentId" placeholder="Enter Student ID" />
+  <button onclick="loadHistory()">Search</button>
+  <div id="result" class="no-data"></div>
+  <table id="historyTable" style="display:none;">
+    <thead>
+      <tr><th>Course Code</th><th>Title</th><th>Semester</th><th>Actions</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<script>
+function loadHistory() {
+  const id = document.getElementById('studentId').value.trim();
+  const table = document.getElementById('historyTable');
+  const tbody = table.querySelector('tbody');
+  const result = document.getElementById('result');
+  tbody.innerHTML = '';
+  table.style.display = 'none';
+  result.textContent = '';
+
+  if (!id) {
+    result.textContent = 'Enter a valid Student ID.';
+    return;
+  }
+
+  const enrollments = JSON.parse(localStorage.getItem('enrollments') || '[]');
+  const filtered = enrollments.map((e, index) => ({ ...e, index }))
+                               .filter(e => e.student_id === id);
+
+  if (filtered.length === 0) {
+    result.textContent = 'No enrollment records found.';
+    return;
+  }
+
+  filtered.forEach(e => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td><input type="text" value="${e.course_code}" disabled /></td>
+      <td><input type="text" value="${e.course_title}" disabled /></td>
+      <td><input type="text" value="${e.semester}" disabled /></td>
+      <td class="action-buttons">
+        <button class="edit" onclick="editRow(this, ${e.index})">Edit</button>
+        <button class="delete" onclick="deleteRow(${e.index})">Delete</button>
+      </td>
+    `;
+    tbody.appendChild(row);
+  });
+
+  table.style.display = 'table';
+}
+
+function editRow(btn, index) {
+  const row = btn.closest('tr');
+  const inputs = row.querySelectorAll('input');
+  const isEditing = btn.textContent === 'Save';
+
+  if (isEditing) {
+    const [code, title, semester] = Array.from(inputs).map(input => input.value.trim());
+    if (!code || !title || !semester) {
+      alert("All fields are required.");
+      return;
+    }
+
+    let enrollments = JSON.parse(localStorage.getItem('enrollments') || '[]');
+    enrollments[index].course_code = code;
+    enrollments[index].course_title = title;
+    enrollments[index].semester = semester;
+    localStorage.setItem('enrollments', JSON.stringify(enrollments));
+    loadHistory();
+  } else {
+    inputs.forEach(input => input.disabled = false);
+    btn.textContent = 'Save';
+  }
+}
+
+function deleteRow(index) {
+  if (!confirm('Are you sure you want to delete this record?')) return;
+
+  let enrollments = JSON.parse(localStorage.getItem('enrollments') || '[]');
+  enrollments.splice(index, 1);
+  localStorage.setItem('enrollments', JSON.stringify(enrollments));
+  loadHistory();
+}
+</script>
+</body>
+</html>
